@@ -48,6 +48,7 @@
     "immer": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
+    "mercadopago": "latest",
     "next": "14.2.16",
     "next-themes": "latest",
     "react": "^18",

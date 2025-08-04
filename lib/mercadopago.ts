@@ -1,71 +1,108 @@
-interface MercadoPagoPreference {
-  items: Array<{
-    title: string
-    quantity: number
-    unit_price: number
-    currency_id: string
-  }>
-  back_urls: {
-    success: string
-    failure: string
-    pending: string
-  }
-  auto_return: string
-  external_reference: string
-  notification_url?: string
+import { MercadoPagoConfig, Preference } from "mercadopago"
+
+// Configuración de MercadoPago
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || "",
+  options: {
+    timeout: 5000,
+    idempotencyKey: "abc",
+  },
+})
+
+const preference = new Preference(client)
+
+export interface ReservaData {
+  id: number
+  cancha_nombre: string
+  fecha: string
+  horario: string
+  precio: number
+  jugador_nombre: string
+  jugador_email: string
+  isWeekly?: boolean
+  weekCount?: number
 }
 
 export async function createMercadoPagoPreference(
-  reservaId: string,
-  cancha: string,
+  reservaId: number,
+  canchaName: string,
   fecha: string,
   horario: string,
-  sena: number,
-): Promise<string> {
-  // En producción, aquí harías la llamada real a la API de Mercado Pago
-  const preference: MercadoPagoPreference = {
-    items: [
-      {
-        title: `Seña - ${cancha} - ${fecha} ${horario}`,
-        quantity: 1,
-        unit_price: sena,
-        currency_id: "ARS",
+  precio: number,
+  jugadorEmail?: string,
+  isWeekly = false,
+  weekCount = 1,
+) {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    const totalPrice = isWeekly ? precio * weekCount : precio
+
+    const preferenceData = {
+      items: [
+        {
+          id: reservaId.toString(),
+          title: isWeekly ? `${canchaName} - ${weekCount} turnos semanales` : `${canchaName} - ${fecha} ${horario}`,
+          description: isWeekly
+            ? `Reserva semanal por ${weekCount} semanas - ${fecha} ${horario}`
+            : `Reserva cancha ${canchaName} para el ${fecha} a las ${horario}`,
+          quantity: 1,
+          unit_price: totalPrice,
+          currency_id: "ARS",
+        },
+      ],
+      payer: {
+        email: jugadorEmail || "test@test.com",
       },
-    ],
-    back_urls: {
-      success: `${window.location.origin}/confirmacion?reserva=${reservaId}&status=success`,
-      failure: `${window.location.origin}/confirmacion?reserva=${reservaId}&status=failure`,
-      pending: `${window.location.origin}/confirmacion?reserva=${reservaId}&status=pending`,
-    },
-    auto_return: "approved",
-    external_reference: reservaId,
-    notification_url: `${window.location.origin}/api/mercadopago/webhook`,
+      back_urls: {
+        success: `${baseUrl}/confirmacion?payment_id={{payment_id}}&status={{payment_status}}&merchant_order_id={{merchant_order_id}}&reserva_id=${reservaId}`,
+        failure: `${baseUrl}/canchas/${reservaId}?error=payment_failed`,
+        pending: `${baseUrl}/confirmacion?payment_id={{payment_id}}&status={{payment_status}}&merchant_order_id={{merchant_order_id}}&reserva_id=${reservaId}`,
+      },
+      auto_return: "approved" as const,
+      external_reference: reservaId.toString(),
+      notification_url: `${baseUrl}/api/mercadopago/webhook`,
+      expires: true,
+      expiration_date_from: new Date().toISOString(),
+      expiration_date_to: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // 30 minutos
+      metadata: {
+        reserva_id: reservaId,
+        cancha_name: canchaName,
+        fecha,
+        horario,
+        is_weekly: isWeekly,
+        week_count: weekCount,
+      },
+    }
+
+    const response = await preference.create({ body: preferenceData })
+
+    if (response.init_point) {
+      return response.init_point
+    } else {
+      throw new Error("No se pudo crear la preferencia de pago")
+    }
+  } catch (error) {
+    console.error("Error creating MercadoPago preference:", error)
+    throw error
   }
-
-  // Simulación de respuesta de Mercado Pago
-  console.log("Creando preferencia de Mercado Pago:", preference)
-
-  // En producción, esto sería algo como:
-  // const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Authorization': `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}`,
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: JSON.stringify(preference)
-  // })
-  // const data = await response.json()
-  // return data.init_point
-
-  // Por ahora, simulamos con un delay y retornamos una URL de prueba
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  return `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=simulado-${reservaId}`
 }
 
-export function getMercadoPagoTestUrl(
-  reservaId: string,
-  status: "success" | "failure" | "pending" = "success",
-): string {
-  return `/confirmacion?reserva=${reservaId}&status=${status}&payment_id=test-${Date.now()}`
+export function getMercadoPagoTestUrl(reservaId: number) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+  return `${baseUrl}/api/mercadopago/simulate?reserva_id=${reservaId}`
+}
+
+export function mapMercadoPagoStatus(status: string): "pendiente" | "confirmada" | "cancelada" {
+  switch (status) {
+    case "approved":
+      return "confirmada"
+    case "pending":
+    case "in_process":
+      return "pendiente"
+    case "cancelled":
+    case "rejected":
+      return "cancelada"
+    default:
+      return "pendiente"
+  }
 }

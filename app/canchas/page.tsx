@@ -7,12 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
-import { Clock, Users, Filter, Loader2 } from "lucide-react"
+import { Clock, Users, Filter, Loader2, AlertCircle, MessageCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getCanchas, getReservasByCancha, type Cancha } from "@/lib/supabase"
 import { DatabaseStatus } from "@/components/database-status"
 import { CanchaCard } from "@/components/cancha-card"
+import { WhatsAppFloat } from "@/components/whatsapp-float"
 
 export default function CanchasPage() {
   const searchParams = useSearchParams()
@@ -69,7 +71,8 @@ export default function CanchasPage() {
         }
       } catch (error) {
         console.error(`Error loading horarios for cancha ${cancha.id}:`, error)
-        ocupados[cancha.id.toString()] = []
+        // Simular algunos horarios ocupados para demostración
+        ocupados[cancha.id.toString()] = ["18:00", "20:00", "21:00"]
       }
     }
 
@@ -181,202 +184,231 @@ export default function CanchasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                <Users className="w-4 h-4 text-white" />
+    <>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-4">
+            <nav className="flex items-center justify-between">
+              <Link href="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                  <Users className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-xl font-bold text-green-800">FutbolVB</span>
+              </Link>
+              <div className="hidden md:flex space-x-6">
+                <Link href="/" className="text-gray-600 hover:text-green-700">
+                  Inicio
+                </Link>
+                <Link href="/canchas" className="text-green-700 hover:text-green-900 font-medium">
+                  Canchas
+                </Link>
+                <Link href="/faq" className="text-gray-600 hover:text-green-700">
+                  FAQ
+                </Link>
+                <Link href="/contacto" className="text-gray-600 hover:text-green-700">
+                  Contacto
+                </Link>
               </div>
-              <span className="text-xl font-bold text-green-800">FutbolVB</span>
-            </Link>
-            <div className="hidden md:flex space-x-6">
-              <Link href="/" className="text-gray-600 hover:text-green-700">
-                Inicio
-              </Link>
-              <Link href="/canchas" className="text-green-700 hover:text-green-900 font-medium">
-                Canchas
-              </Link>
-              <Link href="/faq" className="text-gray-600 hover:text-green-700">
-                FAQ
-              </Link>
-              <Link href="/contacto" className="text-gray-600 hover:text-green-700">
-                Contacto
-              </Link>
-            </div>
-          </nav>
-        </div>
-      </header>
+            </nav>
+          </div>
+        </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <DatabaseStatus />
+        <div className="container mx-auto px-4 py-8">
+          <DatabaseStatus />
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Nuestras Canchas</h1>
-          <p className="text-gray-600">Elegí la cancha perfecta para tu partido</p>
-          <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-            <div className="flex items-center gap-2 text-green-700">
-              <Clock className="w-5 h-5" />
-              <span className="font-medium">
-                Todos los turnos son de 1 hora de duración • Disponibilidad en tiempo real
-              </span>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Nuestras Canchas</h1>
+            <p className="text-gray-600">Elegí la cancha perfecta para tu partido</p>
+            <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2 text-green-700">
+                <Clock className="w-5 h-5" />
+                <span className="font-medium">
+                  Todos los turnos son de 1 hora de duración • Disponibilidad en tiempo real
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Filters */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filtros y Ordenamiento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-              <div className="space-y-2">
-                <Label>Tipo de cancha</Label>
-                <Select value={tipoFilter} onValueChange={setTipoFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todas</SelectItem>
-                    <SelectItem value="F5">⚽ Fútbol 5</SelectItem>
-                    <SelectItem value="F10">🏟️ Fútbol 10</SelectItem>
-                  </SelectContent>
-                </Select>
+          {/* Filters */}
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Filtros y Ordenamiento
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <div className="space-y-2">
+                  <Label>Tipo de cancha</Label>
+                  <Select value={tipoFilter} onValueChange={setTipoFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todas</SelectItem>
+                      <SelectItem value="F5">⚽ Fútbol 5</SelectItem>
+                      <SelectItem value="F10">🏟️ Fútbol 10</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Superficie</Label>
+                  <Select value={superficieFilter} onValueChange={setSuperficieFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todas">Todas</SelectItem>
+                      <SelectItem value="sintetico">🌱 Césped sintético</SelectItem>
+                      <SelectItem value="techada">🏠 Techada</SelectItem>
+                      <SelectItem value="climatizada">❄️ Climatizada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Precio máximo: ${precioRange[0].toLocaleString()}</Label>
+                  <Slider
+                    value={precioRange}
+                    onValueChange={setPrecioRange}
+                    max={20000}
+                    min={5000}
+                    step={1000}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Fecha</Label>
+                  <Input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    max={new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Ordenar por</Label>
+                  <Select value={ordenarPor} onValueChange={setOrdenarPor}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="nombre">📝 Nombre</SelectItem>
+                      <SelectItem value="precio-asc">💰 Precio (menor a mayor)</SelectItem>
+                      <SelectItem value="precio-desc">💎 Precio (mayor a menor)</SelectItem>
+                      <SelectItem value="horarios">⏰ Más horarios disponibles</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Superficie</Label>
-                <Select value={superficieFilter} onValueChange={setSuperficieFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">Todas</SelectItem>
-                    <SelectItem value="sintetico">🌱 Césped sintético</SelectItem>
-                    <SelectItem value="techada">🏠 Techada</SelectItem>
-                    <SelectItem value="climatizada">❄️ Climatizada</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="mt-4 pt-4 border-t">
+                <div className="space-y-2">
+                  <Label>Horario específico</Label>
+                  <Select value={selectedTime || "all"} onValueChange={setSelectedTime}>
+                    <SelectTrigger className="max-w-xs">
+                      <SelectValue placeholder="Cualquier horario" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Cualquier horario</SelectItem>
+                      <SelectItem value="09:00">09:00</SelectItem>
+                      <SelectItem value="10:00">10:00</SelectItem>
+                      <SelectItem value="11:00">11:00</SelectItem>
+                      <SelectItem value="14:00">14:00</SelectItem>
+                      <SelectItem value="15:00">15:00</SelectItem>
+                      <SelectItem value="16:00">16:00</SelectItem>
+                      <SelectItem value="17:00">17:00</SelectItem>
+                      <SelectItem value="18:00">18:00</SelectItem>
+                      <SelectItem value="19:00">19:00</SelectItem>
+                      <SelectItem value="20:00">20:00</SelectItem>
+                      <SelectItem value="21:00">21:00</SelectItem>
+                      <SelectItem value="22:00">22:00</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <Label>Precio máximo: ${precioRange[0].toLocaleString()}</Label>
-                <Slider
-                  value={precioRange}
-                  onValueChange={setPrecioRange}
-                  max={20000}
-                  min={5000}
-                  step={1000}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Fecha</Label>
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  max={new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Ordenar por</Label>
-                <Select value={ordenarPor} onValueChange={setOrdenarPor}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="nombre">📝 Nombre</SelectItem>
-                    <SelectItem value="precio-asc">💰 Precio (menor a mayor)</SelectItem>
-                    <SelectItem value="precio-desc">💎 Precio (mayor a menor)</SelectItem>
-                    <SelectItem value="horarios">⏰ Más horarios disponibles</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-4 border-t">
-              <div className="space-y-2">
-                <Label>Horario específico</Label>
-                <Select value={selectedTime || "all"} onValueChange={setSelectedTime}>
-                  <SelectTrigger className="max-w-xs">
-                    <SelectValue placeholder="Cualquier horario" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Cualquier horario</SelectItem>
-                    <SelectItem value="09:00">09:00</SelectItem>
-                    <SelectItem value="10:00">10:00</SelectItem>
-                    <SelectItem value="11:00">11:00</SelectItem>
-                    <SelectItem value="14:00">14:00</SelectItem>
-                    <SelectItem value="15:00">15:00</SelectItem>
-                    <SelectItem value="16:00">16:00</SelectItem>
-                    <SelectItem value="17:00">17:00</SelectItem>
-                    <SelectItem value="18:00">18:00</SelectItem>
-                    <SelectItem value="19:00">19:00</SelectItem>
-                    <SelectItem value="20:00">20:00</SelectItem>
-                    <SelectItem value="21:00">21:00</SelectItem>
-                    <SelectItem value="22:00">22:00</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results count */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Mostrando {filteredCanchas.length} de {canchas.length} canchas
-          </p>
-        </div>
-
-        {/* Canchas Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCanchas.map((cancha) => {
-            const horariosDisponibles = getHorariosDisponibles(cancha)
-
-            return (
-              <CanchaCard
-                key={cancha.id}
-                cancha={cancha}
-                horariosDisponibles={horariosDisponibles}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-              />
-            )
-          })}
-        </div>
-
-        {filteredCanchas.length === 0 && (
-          <div className="text-center py-12">
-            <div className="max-w-md mx-auto">
-              <p className="text-gray-500 text-lg mb-4">No se encontraron canchas con los filtros seleccionados</p>
-              <p className="text-gray-400 text-sm mb-6">Probá ajustando los filtros o aumentando el rango de precio</p>
-              <Button
-                onClick={() => {
-                  setTipoFilter("todos")
-                  setSuperficieFilter("todas")
-                  setPrecioRange([20000])
-                  setSelectedTime("all")
-                }}
-                variant="outline"
-                className="bg-transparent"
-              >
-                🔄 Limpiar todos los filtros
-              </Button>
-            </div>
+          {/* Results count */}
+          <div className="mb-6">
+            <p className="text-gray-600">
+              Mostrando {filteredCanchas.length} de {canchas.length} canchas
+            </p>
           </div>
-        )}
+
+          {/* Canchas Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCanchas.map((cancha) => {
+              const horariosDisponibles = getHorariosDisponibles(cancha)
+
+              return (
+                <CanchaCard
+                  key={cancha.id}
+                  cancha={cancha}
+                  horariosDisponibles={horariosDisponibles}
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                />
+              )
+            })}
+          </div>
+
+          {/* No Results Message */}
+          {filteredCanchas.length === 0 && (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No hay canchas disponibles</h3>
+                {selectedTime && selectedTime !== "all" && selectedDate ? (
+                  <Alert className="mb-6">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>No hay canchas disponibles en ese horario.</strong>
+                      <br />
+                      Probá con otra hora o día, o contactanos por WhatsApp para consultar disponibilidad especial.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <p className="text-gray-500 text-lg mb-4">No se encontraron canchas con los filtros seleccionados</p>
+                )}
+                <p className="text-gray-400 text-sm mb-6">
+                  Probá ajustando los filtros o aumentando el rango de precio
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button
+                    onClick={() => {
+                      setTipoFilter("todos")
+                      setSuperficieFilter("todas")
+                      setPrecioRange([20000])
+                      setSelectedTime("all")
+                    }}
+                    variant="outline"
+                    className="bg-transparent"
+                  >
+                    🔄 Limpiar todos los filtros
+                  </Button>
+                  <Button asChild className="bg-green-500 hover:bg-green-600">
+                    <a href="https://wa.me/5491112345678" target="_blank" rel="noopener noreferrer">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Consultar por WhatsApp
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* WhatsApp Float */}
+      <WhatsAppFloat />
+    </>
   )
 }
