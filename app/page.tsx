@@ -6,9 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, MapPin, Phone, Users, Zap, Shield, Star } from "lucide-react"
+import { Calendar, Clock, Users, Zap, Shield, Star } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 import { Testimonials } from "@/components/testimonials"
 import { ReservationSteps } from "@/components/reservation-steps"
 
@@ -208,42 +207,6 @@ export default function HomePage() {
 
       {/* Testimonials */}
       <Testimonials />
-
-      {/* Location Section */}
-      <section className="py-16 bg-green-50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-6">En el corazón de Villa Ballester</h2>
-              <p className="text-gray-600 mb-6 text-lg">
-                Nuestras canchas están ubicadas en Villa Ballester, San Martín, Buenos Aires. Fácil acceso en auto y
-                transporte público.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-6 h-6 text-green-600" />
-                  <span className="text-lg">Villa Ballester, San Martín, Buenos Aires</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="w-6 h-6 text-green-600" />
-                  <span className="text-lg">+54 11 1234-5678</span>
-                </div>
-              </div>
-              <Button asChild className="mt-8 bg-green-600 hover:bg-green-700 h-12 px-8 text-lg">
-                <Link href="/contacto">📍 Ver ubicación completa</Link>
-              </Button>
-            </div>
-            <div className="relative h-64 lg:h-80">
-              <Image
-                src="/placeholder.svg?height=320&width=500&text=Vista+aérea+canchas"
-                alt="Vista aérea de las canchas de fútbol"
-                fill
-                className="object-cover rounded-lg shadow-lg"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-green-600 to-green-700 text-white">
